@@ -11,13 +11,14 @@ import logging
 
 logger = logging.getLogger()
 
+
 def init_logger(log_file=None, log_file_level=logging.NOTSET):
     '''
     Example:
         >>> init_logger(log_file)
         >>> logger.info("abc'")
     '''
-    if isinstance(log_file,Path):
+    if isinstance(log_file, Path):
         log_file = str(log_file)
 
     log_format = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
@@ -33,6 +34,7 @@ def init_logger(log_file=None, log_file_level=logging.NOTSET):
         file_handler.setFormatter(log_format)
         logger.addHandler(file_handler)
     return logger
+
 
 def seed_everything(seed=1029):
     '''
@@ -65,7 +67,9 @@ def prepare_device(n_gpu_use):
         device_type = f"cuda:{n_gpu_use[0]}"
     n_gpu = torch.cuda.device_count()
     if len(n_gpu_use) > 0 and n_gpu == 0:
-        logger.warning("Warning: There\'s no GPU available on this machine, training will be performed on CPU.")
+        logger.warning(
+            "Warning: There\'s no GPU available on this machine, training will be performed on CPU."
+        )
         device_type = 'cpu'
     if len(n_gpu_use) > n_gpu:
         msg = f"Warning: The number of GPU\'s configured to use is {n_gpu_use}, but only {n_gpu} are available on this machine."
@@ -114,7 +118,7 @@ def restore_checkpoint(resume_path, model=None):
         model.module.load_state_dict(states)
     else:
         model.load_state_dict(states)
-    return [model,best,start_epoch]
+    return [model, best, start_epoch]
 
 
 def save_pickle(data, file_path):
@@ -172,6 +176,7 @@ def load_json(file_path):
         data = json.load(f)
     return data
 
+
 def save_model(model, model_path):
     """ 存储不含有显卡信息的state_dict或model
     :param model:
@@ -187,6 +192,7 @@ def save_model(model, model_path):
     for key in state_dict:
         state_dict[key] = state_dict[key].cpu()
     torch.save(state_dict, model_path)
+
 
 def load_model(model, model_path):
     '''
@@ -253,6 +259,7 @@ def summary(model, *inputs, batch_size=-1, show_input=True):
     '''
 
     def register_hook(module):
+
         def hook(module, input, output=None):
             class_name = str(module.__class__).split(".")[-1].split("'")[0]
             module_idx = len(summary)
@@ -266,13 +273,9 @@ def summary(model, *inputs, batch_size=-1, show_input=True):
                 if isinstance(output, (list, tuple)):
                     for out in output:
                         if isinstance(out, torch.Tensor):
-                            summary[m_key]["output_shape"] = [
-                                [-1] + list(out.size())[1:]
-                            ][0]
+                            summary[m_key]["output_shape"] = [[-1] + list(out.size())[1:]][0]
                         else:
-                            summary[m_key]["output_shape"] = [
-                                [-1] + list(out[0].size())[1:]
-                            ][0]
+                            summary[m_key]["output_shape"] = [[-1] + list(out[0].size())[1:]][0]
                 else:
                     summary[m_key]["output_shape"] = list(output.size())
                     summary[m_key]["output_shape"][0] = batch_size
@@ -285,7 +288,8 @@ def summary(model, *inputs, batch_size=-1, show_input=True):
                 params += torch.prod(torch.LongTensor(list(module.bias.size())))
             summary[m_key]["nb_params"] = params
 
-        if (not isinstance(module, nn.Sequential) and not isinstance(module, nn.ModuleList) and not (module == model)):
+        if (not isinstance(module, nn.Sequential) and not isinstance(module, nn.ModuleList)
+                and not (module == model)):
             if show_input is True:
                 hooks.append(module.register_forward_pre_hook(hook))
             else:
